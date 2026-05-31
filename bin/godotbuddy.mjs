@@ -16,6 +16,7 @@ import {
   setupFirstRun,
   quickstartProject,
   personalizeStylePack,
+  prepareArtAssetRun,
   qaSpriteAssets,
   promoteStylePack,
   doctor,
@@ -55,7 +56,7 @@ function bool(v, def = false) {
 }
 
 function printHelp() {
-  console.log(`GodotBuddy v0.1.0
+  console.log(`GodotBuddy v0.1.1
 
 Usage:
   godotbuddy setup [--project-name NAME] [--style-pack generic] [--platforms mobile,desktop] [--install-skills true]
@@ -63,6 +64,7 @@ Usage:
   godotbuddy init [--project-name NAME] [--root DIR]
   godotbuddy scaffold [--project NAME] [--root DIR] [--install-addon]
   godotbuddy personalize --name NAME [--description "..."] [--art-style pixel|storybook|painted|custom] [--reference PATH]
+  godotbuddy art --name NAME [--type character|prop] [--states clean,dirty] [--animations idle,walk] [--reference PATH]
   godotbuddy prep --goal "..." [--title NAME] [--style-pack generic]
   godotbuddy asset --name NAME [--type prop] [--states clean,dirty] [--animations idle,walk] [--style generic]
   godotbuddy qa [--run SLUG]
@@ -205,6 +207,32 @@ async function main() {
       });
       console.log(`Added asset request: ${asset.id}`);
       console.log(`Request: ${runDir(root, loadRun(root, args.run).slug)}/${asset.manifest}`);
+      return;
+    }
+
+    if (command === 'art' || command === 'sprite-run') {
+      const name = args.name || args._.join(' ');
+      if (!name) throw new Error('Missing --name');
+      const art = prepareArtAssetRun({
+        root,
+        slug: args.run,
+        name,
+        type: args.type || args.category || 'sprite',
+        style: args.style,
+        description: args.description || args.desc || args.notes || '',
+        states: csv(args.states),
+        animations: csv(args.animations),
+        variations: csv(args.variations),
+        references: csv(args.reference || args.references || args.file || args.files),
+        cellSize: args['cell-size'] || args.cellSize,
+        columns: Number(args.columns || 8),
+        chromaKey: args['chroma-key'] || args.chromaKey || '#00ff00',
+        force: bool(args.force, false)
+      });
+      console.log(`Prepared art run: ${art.runRoot}`);
+      console.log(`Jobs: ${art.jobs.map(job => job.id).join(', ')}`);
+      console.log(`Contract: ${path.join(art.runRoot, 'output_contract.json')}`);
+      console.log('Next: generate the base job with Codex image generation, then use imagegen-jobs.json for each row/state.');
       return;
     }
 

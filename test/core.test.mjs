@@ -11,8 +11,10 @@ import {
   configPath,
   createRun,
   doctor,
+  loadRun,
   loadMoodboard,
   packageRoot,
+  prepareArtAssetRun,
   personalizeStylePack,
   promoteStylePack,
   qaSpriteAssets,
@@ -163,6 +165,47 @@ test('moodboard references keep notes and feed asset request context', () => {
   const request = readJson(path.join(root, '.godotbuddy', 'runs', state.slug, asset.manifest));
   assert.match(request.moodboard_context, /Warm palette/);
   assert.equal(request.moodboard_references[0].title, 'Warm palette');
+});
+
+test('prepareArtAssetRun creates Hatch-style sprite production contract', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'godotbuddy-art-'));
+  const root = path.join(tmp, 'game');
+  quickstartProject({
+    root,
+    projectName: 'Art Game',
+    goal: 'Prepare sprite production',
+    codexHome: path.join(tmp, 'codex-home')
+  });
+
+  const result = prepareArtAssetRun({
+    root,
+    name: 'Player',
+    type: 'character',
+    animations: ['idle', 'walk_down'],
+    description: 'Readable player character with clear silhouette.'
+  });
+
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'asset_request.json')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'imagegen-jobs.json')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'output_contract.json')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'prompts', 'base.txt')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'decoded')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'final')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'qa', 'previews')));
+  assert.ok(fs.existsSync(path.join(result.runRoot, 'godot')));
+
+  const jobs = readJson(path.join(result.runRoot, 'imagegen-jobs.json')).jobs;
+  assert.deepEqual(jobs.map(job => job.id), ['base', 'idle', 'walk_down']);
+  assert.equal(jobs[1].requires[0], 'base');
+  assert.match(fs.readFileSync(path.join(result.runRoot, 'prompts', 'idle.txt'), 'utf8'), /exactly 6/);
+
+  const contract = readJson(path.join(result.runRoot, 'output_contract.json'));
+  assert.ok(contract.required_final_files.includes('final/spritesheet.webp'));
+  assert.match(contract.image_generation, /image generation/);
+
+  const state = loadRun(root, result.slug);
+  const asset = state.assets.find(item => item.id === 'player');
+  assert.ok(asset.sprite_run);
 });
 
 test('qaSpriteAssets writes a report and receipt for sprite readiness', () => {

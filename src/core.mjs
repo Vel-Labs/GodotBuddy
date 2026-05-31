@@ -164,6 +164,11 @@ export function initWorkspace({ root = process.cwd(), projectName = null, force 
     fs.writeFileSync(readme, `# GodotBuddy\n\nLocal workflow state, asset boards, receipts, and proof files for this Godot project.\n\nRun \`godotbuddy board\` to open the local dashboard.\n`);
   }
 
+  const artEngine = path.join(gb, 'ART_ENGINE.md');
+  if (!fs.existsSync(artEngine) || force) {
+    fs.writeFileSync(artEngine, `# GodotBuddy Art Engine Contract\n\nGodotBuddy uses Codex plus the installed image generation capability for visual creation. Local scripts and CLI commands prepare prompts, manifests, QA folders, frame contracts, and Godot packaging targets; they must not fabricate final sprite art.\n\nDefault sprite outputs should follow this contract:\n\n- create a canonical base reference before animation/state rows\n- use reference images and moodboard notes as style/identity locks\n- generate exact declared frame counts\n- use flat chroma-key or true transparent backgrounds\n- remove labels, frame numbers, grids, scenery, shadows, glows, speed lines, and detached effects unless explicitly requested\n- package transparent frames, spritesheet PNG/WebP, contact sheet, validation, and Godot starter resources\n\nPrepared art runs live under \`.godotbuddy/runs/<run>/sprite-runs/<asset>/\`.\n`);
+  }
+
   return { root, gb, cfg };
 }
 
@@ -493,6 +498,231 @@ export function personalizeStylePack({
   const receipt = path.join(godotBuddyRoot(root), 'receipts', `style-pack-${slug}.md`);
   writeText(receipt, `# Style Pack Personalized\n\nStyle pack: ${name}\nSlug: ${slug}\nReferences: ${copiedRefs.length}\n`);
   return { slug, dir, pack, receipt };
+}
+
+function parseCellSize(value, fallback = [256, 256]) {
+  const m = String(value || '').toLowerCase().match(/^\s*(\d+)\s*[x,]\s*(\d+)\s*$/);
+  if (!m) return fallback;
+  return [Number(m[1]), Number(m[2])];
+}
+
+function defaultArtOutputs(type) {
+  if (['character', 'npc', 'player'].includes(type)) {
+    return [
+      { id: 'idle', kind: 'animation', frame_count: 4, description: 'gentle breathing and blink loop', layout: 'strip-h', loop: true, fps: 5, anchor: 'bottom' },
+      { id: 'walk_down', kind: 'animation', frame_count: 6, description: 'walking toward camera/front/down direction', layout: 'strip-h', loop: true, fps: 8, anchor: 'bottom' },
+      { id: 'walk_up', kind: 'animation', frame_count: 6, description: 'walking away from camera/back/up direction', layout: 'strip-h', loop: true, fps: 8, anchor: 'bottom' },
+      { id: 'walk_left', kind: 'animation', frame_count: 6, description: 'side-view walk cycle facing left', layout: 'strip-h', loop: true, fps: 8, anchor: 'bottom' },
+      { id: 'walk_right', kind: 'animation', frame_count: 6, description: 'side-view walk cycle facing right', layout: 'strip-h', loop: true, fps: 8, anchor: 'bottom' }
+    ];
+  }
+  if (['furniture', 'prop', 'object'].includes(type)) {
+    return [
+      { id: 'clean', kind: 'state', frame_count: 1, description: 'clean/tidy state', layout: 'single', loop: false, fps: 1, anchor: 'center' },
+      { id: 'dirty', kind: 'state', frame_count: 1, description: 'dirty/messy state of the same object', layout: 'single', loop: false, fps: 1, anchor: 'center' }
+    ];
+  }
+  if (['map', 'room', 'dollhouse'].includes(type)) {
+    return [{ id: 'map_base', kind: 'map', frame_count: 1, description: 'single clean map or room background with no UI labels', layout: 'single', loop: false, fps: 1, anchor: 'center' }];
+  }
+  return [{ id: 'default', kind: 'sprite', frame_count: 1, description: 'single game-ready sprite', layout: 'single', loop: false, fps: 1, anchor: 'center' }];
+}
+
+function outputFromName(name, kind) {
+  return {
+    id: slugify(name, kind).replace(/-/g, '_'),
+    kind,
+    frame_count: kind === 'animation' ? 6 : 1,
+    description: String(name || '').replace(/[_-]+/g, ' '),
+    layout: kind === 'animation' ? 'strip-h' : 'single',
+    loop: kind === 'animation',
+    fps: kind === 'animation' ? 8 : 1,
+    anchor: kind === 'animation' ? 'bottom' : 'center'
+  };
+}
+
+function artPrompt(request, job) {
+  const key = request.atlas.chroma_key;
+  const cell = `${request.atlas.cell_width}x${request.atlas.cell_height}`;
+  const shared = `Asset: ${request.asset_name}
+Type: ${request.asset_type}
+Description: ${request.description}
+Style lock: ${request.style_notes || 'Use the moodboard and references exactly as the style source.'}
+Moodboard context:
+${request.moodboard_context || 'No moodboard context recorded.'}
+
+Strict sprite rules: produce game-ready sprite source art only. Use a perfectly flat ${key} chroma-key background unless true alpha is explicitly supported. No text, labels, frame numbers, visible grids, borders, UI panels, watermarks, scenery, cast shadows, floor shadows, glows, speed lines, blur, dust clouds, or detached effects. Keep the asset complete, readable at target size, and separated from the chroma key.`;
+  if (job.id === 'base') {
+    return `Create the canonical base reference for this game sprite.
+
+${shared}
+
+Output one centered full-body/object reference image. This base becomes the identity and style source for every state or animation row.
+`;
+  }
+  if (job.frame_count === 1) {
+    return `Create one sprite state for this asset.
+
+${shared}
+
+State id: ${job.id}
+State description: ${job.description}
+Target transparent cell after processing: ${cell}
+
+It must be the same asset identity as the canonical base, not a redesign.
+`;
+  }
+  return `Create an animation sprite strip for this asset.
+
+${shared}
+
+Animation id: ${job.id}
+Animation description: ${job.description}
+Frame count: exactly ${job.frame_count}
+Layout: ${job.layout}; place complete frames left-to-right, evenly spaced, one pose per slot.
+Target transparent cell after processing: ${cell}
+
+Use the canonical base and references as identity locks. Show motion through pose changes only.
+`;
+}
+
+export function prepareArtAssetRun({
+  root = repoRoot(),
+  slug = null,
+  name,
+  type = 'sprite',
+  style = null,
+  description = '',
+  states = [],
+  animations = [],
+  variations = [],
+  references = [],
+  cellSize = null,
+  columns = 8,
+  chromaKey = '#00ff00',
+  force = false
+} = {}) {
+  if (!name) throw new Error('Missing art asset name.');
+  initWorkspace({ root });
+  const state = loadRun(root, slug) || createRun({ root, title: 'Art engine run', goal: 'Create game-ready sprite assets', force: false });
+  const assetId = slugify(name, 'sprite-asset');
+  const styleName = style || readJson(configPath(root), {})?.default_style_pack || 'generic';
+  const [cellWidth, cellHeight] = parseCellSize(cellSize, ['character', 'npc', 'player'].includes(type) ? [256, 320] : [256, 256]);
+  const outputs = [
+    ...states.map(s => outputFromName(s, 'state')),
+    ...animations.map(a => outputFromName(a, 'animation')),
+    ...variations.map(v => outputFromName(v, 'variant'))
+  ];
+  const finalOutputs = outputs.length ? outputs : defaultArtOutputs(type);
+  const spriteRunRoot = path.join(runDir(root, state.slug), 'sprite-runs', assetId);
+  if (fs.existsSync(spriteRunRoot) && force) fs.rmSync(spriteRunRoot, { recursive: true, force: true });
+  if (fs.existsSync(spriteRunRoot) && !force) throw new Error(`Art run already exists: ${spriteRunRoot}. Use --force to overwrite.`);
+  for (const sub of ['prompts', 'references', 'decoded', 'frames', 'final', 'qa/previews', 'godot']) ensureDir(path.join(spriteRunRoot, sub));
+
+  const copiedRefs = [];
+  for (const ref of references || []) {
+    const abs = path.resolve(ref);
+    if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) throw new Error(`Reference file does not exist: ${abs}`);
+    const dest = path.join(spriteRunRoot, 'references', path.basename(abs));
+    copyRecursive(abs, dest, { overwrite: true });
+    copiedRefs.push(dest);
+  }
+
+  const request = {
+    version: '0.1.1',
+    asset_name: name,
+    slug: assetId,
+    asset_type: type,
+    description: description || name,
+    style_pack: styleName,
+    style_notes: `Style pack: ${styleName}`,
+    moodboard_context: composeMoodboardContext(root),
+    references: copiedRefs,
+    outputs: finalOutputs,
+    atlas: {
+      cell_width: cellWidth,
+      cell_height: cellHeight,
+      columns,
+      padding: 12,
+      background: 'chroma',
+      chroma_key: chromaKey,
+      chroma_tolerance: 42
+    },
+    godot: {
+      texture_path: `res://assets/sprites/${assetId}/spritesheet.png`,
+      expected_files: ['spritesheet.png', 'spritesheet.webp', 'frames-manifest.json', `${assetId}_spriteframes.tres`, `${assetId}_animated_sprite_2d.tscn`]
+    },
+    created_at: nowIso()
+  };
+  const jobs = [
+    {
+      id: 'base',
+      kind: 'base',
+      frame_count: 1,
+      layout: 'single',
+      status: 'pending',
+      requires: [],
+      input_images: copiedRefs.map(p => ({ path: p, role: 'style/identity reference' })),
+      prompt_path: path.join(spriteRunRoot, 'prompts', 'base.txt'),
+      decoded_path: path.join(spriteRunRoot, 'decoded', 'base.png')
+    },
+    ...finalOutputs.map(output => ({
+      ...output,
+      status: 'pending',
+      requires: ['base'],
+      input_images: [
+        { path: path.join(spriteRunRoot, 'decoded', 'base.png'), role: 'canonical base reference after base is recorded' },
+        ...copiedRefs.map(p => ({ path: p, role: 'style/identity reference' }))
+      ],
+      prompt_path: path.join(spriteRunRoot, 'prompts', `${output.id}.txt`),
+      decoded_path: path.join(spriteRunRoot, 'decoded', `${output.id}.png`)
+    }))
+  ];
+  for (const job of jobs) writeText(job.prompt_path, artPrompt(request, job));
+  writeJson(path.join(spriteRunRoot, 'asset_request.json'), request);
+  writeJson(path.join(spriteRunRoot, 'imagegen-jobs.json'), { version: '0.1.1', run_dir: spriteRunRoot, asset_name: name, slug: assetId, jobs });
+  writeJson(path.join(spriteRunRoot, 'output_contract.json'), {
+    version: '0.1.1',
+    based_on: 'Codex Hatch/Pet style production contract',
+    required_final_files: [
+      'references/canonical-base.png',
+      'frames/frames-manifest.json',
+      'final/spritesheet.png',
+      'final/spritesheet.webp',
+      'final/validation.json',
+      'qa/contact-sheet.png',
+      'qa/run-summary.json',
+      'godot/godot_import_manifest.json',
+      `godot/${assetId}_spriteframes.tres`
+    ],
+    qa_rules: [
+      'Same asset identity across every row/state',
+      'Exact declared frame counts',
+      'Transparent final frames with safe padding',
+      'No labels, frame numbers, grids, scenery, watermarks, shadows, glows, speed lines, or detached effects',
+      'Contact sheet visually reviewed before acceptance',
+      'Godot starter resources generated before ready_for_import'
+    ],
+    image_generation: 'Use Codex image generation or the installed imagegen skill for visual jobs; deterministic scripts only process generated images.'
+  });
+  writeText(path.join(spriteRunRoot, 'README.md'), `# ${name} Art Run\n\nThis is a GodotBuddy art-engine run. Generate the \`base\` job first using \`prompts/base.txt\`, then record the selected image as \`decoded/base.png\` and \`references/canonical-base.png\`. Generate each pending state/animation job from \`imagegen-jobs.json\` using the canonical base and references.\n\nFinal output should match \`output_contract.json\` and include transparent frames, spritesheet PNG/WebP, QA contact sheet, validation, and Godot starter resources.\n`);
+
+  const asset = addAsset({ root, slug: state.slug, name, type, style: styleName, states, animations, variations, notes: description });
+  const reloaded = loadRun(root, state.slug);
+  const existing = reloaded.assets.findIndex(a => a.id === asset.id);
+  if (existing >= 0) {
+    reloaded.assets[existing] = { ...reloaded.assets[existing], sprite_run: path.relative(runDir(root, state.slug), spriteRunRoot) };
+  }
+  writeJson(path.join(runDir(root, reloaded.slug), 'state.json'), reloaded);
+  writeJson(path.join(runDir(root, reloaded.slug), 'asset-manifest.json'), { assets: reloaded.assets, updated_at: nowIso() });
+  addReceipt({
+    root,
+    slug: state.slug,
+    title: `Prepared art run for ${name}`,
+    body: 'Created Hatch/Pet-style prompt, imagegen job, output contract, QA, and Godot packaging folders for this sprite asset.',
+    files: [path.relative(root, path.join(spriteRunRoot, 'asset_request.json')), path.relative(root, path.join(spriteRunRoot, 'output_contract.json'))]
+  });
+  return { root, slug: state.slug, asset: reloaded.assets.find(a => a.id === asset.id), runRoot: spriteRunRoot, request, jobs };
 }
 
 export function qaSpriteAssets({ root = repoRoot(), slug = null } = {}) {

@@ -21,6 +21,12 @@ Then create the first guided board:
 npx godotbuddy@latest quickstart
 ```
 
+Prepare a game-ready sprite production run:
+
+```bash
+npx godotbuddy@latest art --name player --type character --animations idle,walk_down,walk_up,walk_left,walk_right
+```
+
 Power users can also install it globally:
 
 ```bash
@@ -99,6 +105,52 @@ The local board includes:
 - sprite QA actions
 - receipts and proof logs
 - a taskbar bug button that opens a GitHub issue with the right project
+
+## Art Engine Contract
+
+GodotBuddy is designed to work like the Codex Hatch/Pet flow: Codex handles the
+visual generation step, while GodotBuddy owns the structured production files.
+The package prepares the prompts, image generation job manifest, sprite output
+contract, QA folder, and Godot packaging targets.
+
+```bash
+godotbuddy art --name player --type character --animations idle,walk_down,walk_up,walk_left,walk_right
+```
+
+That creates:
+
+```text
+.godotbuddy/runs/<run>/sprite-runs/<asset>/
+  asset_request.json
+  imagegen-jobs.json
+  output_contract.json
+  prompts/
+  references/
+  decoded/
+  frames/
+  final/
+  qa/
+  godot/
+```
+
+Codex should generate the `base` job first with the available image generation
+tool, then generate each state or animation row from `imagegen-jobs.json`.
+Deterministic processing and QA should produce:
+
+```text
+frames/frames-manifest.json
+final/spritesheet.png
+final/spritesheet.webp
+final/validation.json
+qa/contact-sheet.png
+qa/run-summary.json
+godot/godot_import_manifest.json
+godot/<asset>_spriteframes.tres
+```
+
+The strict default rules are: exact frame counts, same asset identity across
+rows, transparent final frames, clean padding, no labels/grids/scenery/shadows,
+and visual review of the contact sheet before an asset is accepted.
 
 `godotbuddy setup` is the first-run path. It creates `.godotbuddy/config.json`,
 personalizes the local project defaults, installs the bundled skills into
