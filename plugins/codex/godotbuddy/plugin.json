@@ -1,0 +1,34 @@
+{
+  "name": "godotbuddy",
+  "version": "0.1.0",
+  "description": "Codex-style plugin skeleton for GodotBuddy. The CLI is the stable entrypoint; adapt this manifest to the active Codex plugin schema when installing as a native plugin.",
+  "commands": [
+    {
+      "name": "$godot-prep",
+      "description": "Prepare a GodotBuddy run and local board.",
+      "command": "godotbuddy prep"
+    },
+    {
+      "name": "$godot-board",
+      "description": "Open the local GodotBuddy board.",
+      "command": "godotbuddy board"
+    },
+    {
+      "name": "$godot-asset",
+      "description": "Add a Godot-ready asset request.",
+      "command": "godotbuddy asset"
+    },
+    {
+      "name": "$godot-doctor",
+      "description": "Check GodotBuddy setup status.",
+      "command": "godotbuddy doctor"
+    }
+  ],
+  "agents": [
+    "godot_scout",
+    "godot_producer",
+    "godot_asset_director",
+    "godot_engineer",
+    "godot_qa"
+  ]
+}

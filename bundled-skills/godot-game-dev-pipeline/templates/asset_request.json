@@ -1,0 +1,13 @@
+{
+  "asset_name": "example_asset",
+  "category": "character|prop|furniture|room|map|ui",
+  "style_pack": "generic|custom-style-name",
+  "states": [],
+  "animations": [],
+  "godot": {
+    "node_type": "Sprite2D",
+    "cell_size": [256, 256],
+    "atlas": true,
+    "separate_pngs": true
+  }
+}

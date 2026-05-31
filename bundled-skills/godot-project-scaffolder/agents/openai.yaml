@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Project Scaffolder"
+  short_description: "Create mobile-first Godot project skeletons"
+  default_prompt: "Create a clean Godot project skeleton with folders, starter scenes, scripts, and integration notes."

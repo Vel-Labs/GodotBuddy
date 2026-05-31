@@ -1,0 +1,8 @@
+{
+  "project_name": "example",
+  "engine_family": "Godot 4.x",
+  "focus": ["mobile", "desktop"],
+  "game_type": "2d",
+  "scenes": ["scenes/Main.tscn"],
+  "notes": []
+}

@@ -1,0 +1,10 @@
+{
+  "project_name": "example_project",
+  "feature_name": "example_feature",
+  "style_pack": "generic",
+  "platform_focus": ["mobile", "desktop"],
+  "assets": [],
+  "scenes": [],
+  "ui": [],
+  "notes": []
+}

@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/godotbuddy/godotbuddy_dock.gd" id="1"]
+
+[node name="GodotBuddyDock" type="VBoxContainer"]
+script = ExtResource("1")
+
+[node name="Title" type="Label" parent="."]
+text = "GodotBuddy"
+
+[node name="StatusLabel" type="Label" parent="."]
+unique_name_in_owner = true
+text = "Status"
+autowrap_mode = 3
+
+[node name="BoardUrl" type="LineEdit" parent="."]
+unique_name_in_owner = true
+text = "http://127.0.0.1:41737/"
+placeholder_text = "GodotBuddy board URL"
+
+[node name="OpenBoard" type="Button" parent="."]
+text = "Open Local Board"
+
+[node name="OpenWorkspace" type="Button" parent="."]
+text = "Open .godotbuddy Folder"
+
+[connection signal="pressed" from="OpenBoard" to="." method="_on_open_board_pressed"]
+[connection signal="pressed" from="OpenWorkspace" to="." method="_on_open_workspace_pressed"]

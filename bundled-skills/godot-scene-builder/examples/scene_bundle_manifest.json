@@ -1,0 +1,6 @@
+{
+  "scene_name": "PlayerActor",
+  "scene_type": "actor",
+  "expected_assets": ["player_spriteframes.tres"],
+  "notes": ["Wire imported SpriteFrames into AnimatedSprite2D after sprite import."]
+}

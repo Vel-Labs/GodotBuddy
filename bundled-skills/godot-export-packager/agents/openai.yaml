@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Export Packager"
+  short_description: "Create export readiness packages for Godot projects"
+  default_prompt: "Create release manifests, export checklists, platform QA matrices, and export preset examples for mobile and desktop Godot builds."

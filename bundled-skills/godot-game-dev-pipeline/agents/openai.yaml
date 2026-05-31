@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Game Dev Pipeline"
+  short_description: "Coordinate complete mobile-first Godot game-development work"
+  default_prompt: "Turn the user's game-development request into a Godot-ready workflow. Create run folders and manifests, route art to sprite-generator or an intentionally installed project-local style worker, route scaffolding to Godot worker skills, and package outputs with mobile/desktop integration notes."

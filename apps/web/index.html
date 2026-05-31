@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GodotBuddy</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="desktop">
+    <aside class="desktopIcons" aria-label="GodotBuddy windows">
+      <button class="desktopIcon" data-window="moodboardWindow">
+        <span class="iconGlyph">IMG</span>
+        <span>Moodboard</span>
+      </button>
+      <button class="desktopIcon" data-window="progressWindow">
+        <span class="iconGlyph">KAN</span>
+        <span>Progress</span>
+      </button>
+      <button class="desktopIcon" data-window="assetWindow">
+        <span class="iconGlyph">SPR</span>
+        <span>Assets</span>
+      </button>
+      <button class="desktopIcon" data-window="qaWindow">
+        <span class="iconGlyph">QA</span>
+        <span>QA Lab</span>
+      </button>
+      <button class="desktopIcon" data-window="receiptWindow">
+        <span class="iconGlyph">DOC</span>
+        <span>Receipts</span>
+      </button>
+    </aside>
+
+    <main class="workspace">
+      <section class="window goalWindow">
+        <div class="titlebar">
+          <span>Current Goal</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize Current Goal">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close Current Goal">x</button>
+          </div>
+          <span id="taskCount" class="windowMeta"></span>
+        </div>
+        <div class="windowBody goalBody">
+          <div>
+            <h2 id="goalTitle">Loading...</h2>
+            <p id="goalText"></p>
+            <div class="journey">
+              <span>1. Goal</span>
+              <span>2. Mood</span>
+              <span>3. Assets</span>
+              <span>4. QA</span>
+              <span>5. Proof</span>
+            </div>
+          </div>
+          <div class="oracle">
+            <span class="label">Oracle</span>
+            <p id="oracleText"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="moodboardWindow" class="window moodboardWindow">
+        <div class="titlebar">
+          <span>Moodboard</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize Moodboard">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close Moodboard">x</button>
+          </div>
+          <span id="moodboardCount" class="windowMeta">0 refs</span>
+        </div>
+        <div class="windowBody moodboardBody">
+          <form id="moodboardForm" class="sideForm">
+            <label>
+              Add reference
+              <input id="moodboardFiles" type="file" accept="image/*" multiple>
+            </label>
+            <label>
+              Title
+              <input id="moodTitle" placeholder="Forest palette, hero silhouette">
+            </label>
+            <label>
+              Use this for
+              <input id="moodUseFor" placeholder="palette, lighting, shapes">
+            </label>
+            <label>
+              Notes
+              <textarea id="moodNotes" placeholder="What should the generator learn from this reference?"></textarea>
+            </label>
+            <label>
+              Avoid
+              <input id="moodAvoid" placeholder="noise, harsh outlines, low contrast">
+            </label>
+            <label>
+              Tags
+              <input id="moodTags" placeholder="palette, cozy, UI">
+            </label>
+            <label>
+              Weight
+              <select id="moodWeight">
+                <option value="1">1 low</option>
+                <option value="2">2</option>
+                <option value="3" selected>3 normal</option>
+                <option value="4">4 important</option>
+                <option value="5">5 anchor</option>
+              </select>
+            </label>
+            <button type="submit">Add To Moodboard</button>
+            <p id="moodStatus" class="muted"></p>
+          </form>
+          <div>
+            <div id="moodboardGrid" class="moodboardGrid"></div>
+            <div class="promptBox">
+              <h3>Prompt Context</h3>
+              <pre id="moodPrompt">No moodboard notes yet.</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="progressWindow" class="window progressWindow">
+        <div class="titlebar">
+          <span>Progress Board</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize Progress Board">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close Progress Board">x</button>
+          </div>
+          <span class="windowMeta">pipeline</span>
+        </div>
+        <div class="windowBody">
+          <div id="board" class="board"></div>
+        </div>
+      </section>
+
+      <section id="assetWindow" class="window assetWindow">
+        <div class="titlebar">
+          <span>Asset Studio</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize Asset Studio">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close Asset Studio">x</button>
+          </div>
+          <span id="assetCount" class="windowMeta"></span>
+        </div>
+        <div class="windowBody">
+          <div id="assetGrid" class="assetGrid"></div>
+        </div>
+      </section>
+
+      <section id="qaWindow" class="window qaWindow">
+        <div class="titlebar">
+          <span>QA Lab</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize QA Lab">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close QA Lab">x</button>
+          </div>
+          <span class="windowMeta">sprite review</span>
+        </div>
+        <div class="windowBody qaBody">
+          <button id="qaBtn">Run Sprite QA</button>
+          <p id="qaStatus" class="muted">Checks attached sprites, manifests, and Godot import readiness.</p>
+        </div>
+      </section>
+
+      <section id="receiptWindow" class="window receiptWindow">
+        <div class="titlebar">
+          <span>Receipts / Proof</span>
+          <div class="windowControls">
+            <button class="windowButton" data-action="minimize" aria-label="Minimize Receipts">_</button>
+            <button class="windowButton" data-action="close" aria-label="Close Receipts">x</button>
+          </div>
+          <span id="receiptCount" class="windowMeta"></span>
+        </div>
+        <div class="windowBody">
+          <div id="receipts" class="receipts"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="taskbar">
+      <button class="startButton" type="button">Start</button>
+      <div id="taskButtons" class="taskButtons"></div>
+      <div class="systemTray">
+        <select id="runSelect"></select>
+        <button id="refreshBtn">Refresh</button>
+        <a
+          id="bugReportLink"
+          class="bugButton"
+          href="https://github.com/Vel-Labs/GodotBuddy/issues/new?template=bug_report.md"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open a GodotBuddy bug report on GitHub"
+          title="Report a GodotBuddy bug"
+        >!</a>
+        <span id="statusPill" class="pill">loading</span>
+        <span id="clockPill" class="clockPill">--:--</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

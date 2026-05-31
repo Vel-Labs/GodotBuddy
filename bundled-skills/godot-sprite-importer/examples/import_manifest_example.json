@@ -1,0 +1,5 @@
+{
+  "pack_name": "starter_prop_demo",
+  "texture": "res://assets/sprites/starter_prop_demo/spritesheet.png",
+  "recommended_nodes": ["Sprite2D", "AnimatedSprite2D"]
+}

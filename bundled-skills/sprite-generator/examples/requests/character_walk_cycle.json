@@ -1,0 +1,73 @@
+{
+  "asset_name": "Game Character",
+  "asset_type": "character",
+  "description": "friendly game character",
+  "style_notes": "match supplied character style reference",
+  "references": [
+    "/absolute/path/to/character_reference.png"
+  ],
+  "outputs": [
+    {
+      "id": "idle",
+      "kind": "animation",
+      "frame_count": 4,
+      "description": "breathing blink loop",
+      "layout": "strip-h",
+      "loop": true,
+      "fps": 5,
+      "anchor": "bottom"
+    },
+    {
+      "id": "walk_down",
+      "kind": "animation",
+      "frame_count": 6,
+      "description": "walking toward camera",
+      "layout": "strip-h",
+      "loop": true,
+      "fps": 8,
+      "anchor": "bottom"
+    },
+    {
+      "id": "walk_up",
+      "kind": "animation",
+      "frame_count": 6,
+      "description": "walking away from camera",
+      "layout": "strip-h",
+      "loop": true,
+      "fps": 8,
+      "anchor": "bottom"
+    },
+    {
+      "id": "walk_left",
+      "kind": "animation",
+      "frame_count": 6,
+      "description": "walking left",
+      "layout": "strip-h",
+      "loop": true,
+      "fps": 8,
+      "anchor": "bottom"
+    },
+    {
+      "id": "walk_right",
+      "kind": "animation",
+      "frame_count": 6,
+      "description": "walking right",
+      "layout": "strip-h",
+      "loop": true,
+      "fps": 8,
+      "anchor": "bottom"
+    }
+  ],
+  "atlas": {
+    "cell_width": 256,
+    "cell_height": 320,
+    "columns": 6,
+    "padding": 12,
+    "background": "chroma",
+    "chroma_key": "#00ff00",
+    "chroma_tolerance": 42
+  },
+  "godot": {
+    "texture_path": "res://assets/sprites/game-character/spritesheet.png"
+  }
+}

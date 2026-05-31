@@ -1,0 +1,18 @@
+node_modules/
+npm-debug.log*
+*.tgz
+
+# Local GodotBuddy usage state belongs to each game repo, not the package repo.
+.godotbuddy/
+godotbuddy-demo/
+examples/sample-godot-project/
+examples/sample-assets/
+
+# Personal project style packs stay local unless promoted intentionally.
+bundled-skills/local-*-sprite-generator/
+bundled-skills/*-private-sprite-generator/
+
+# OS/editor noise.
+.DS_Store
+.idea/
+.vscode/

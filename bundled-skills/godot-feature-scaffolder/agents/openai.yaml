@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Feature Scaffolder"
+  short_description: "Break gameplay ideas into implementation-ready Godot feature modules"
+  default_prompt: "Create feature specs, task lists, scene plans, script plans, and asset request manifests for a Godot gameplay feature."

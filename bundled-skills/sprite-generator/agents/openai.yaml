@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprite Generator"
+  short_description: "Create Godot-ready sprite sheets, state sets, animations, and maps from references or descriptions"
+  default_prompt: "Create a game-ready sprite asset from references or a vivid description. Prepare a run folder, generate a canonical base, generate requested states/animations with the same identity and style, then use the skill scripts to extract transparent frames, compose an atlas, generate QA contact sheets/previews, and write Godot SpriteFrames starter files."

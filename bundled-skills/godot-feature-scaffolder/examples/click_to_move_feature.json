@@ -1,0 +1,6 @@
+{
+  "feature_name": "Click To Move Pathing",
+  "kind": "movement",
+  "summary": "Tap/click a destination and have the player follow a path.",
+  "assets_needed": ["player_walk_sprite", "destination_marker", "path_dots"]
+}

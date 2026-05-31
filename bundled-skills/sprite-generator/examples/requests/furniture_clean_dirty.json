@@ -1,0 +1,43 @@
+{
+  "asset_name": "Market Crate",
+  "asset_type": "prop",
+  "description": "readable wooden market crate with colorful contents",
+  "style_notes": "match supplied game reference style",
+  "references": [
+    "/absolute/path/to/style_reference.png"
+  ],
+  "outputs": [
+    {
+      "id": "full",
+      "kind": "state",
+      "frame_count": 1,
+      "description": "crate full of items",
+      "layout": "single",
+      "loop": false,
+      "fps": 1,
+      "anchor": "center"
+    },
+    {
+      "id": "empty",
+      "kind": "state",
+      "frame_count": 1,
+      "description": "same crate empty",
+      "layout": "single",
+      "loop": false,
+      "fps": 1,
+      "anchor": "center"
+    }
+  ],
+  "atlas": {
+    "cell_width": 256,
+    "cell_height": 256,
+    "columns": 2,
+    "padding": 12,
+    "background": "chroma",
+    "chroma_key": "#00ff00",
+    "chroma_tolerance": 42
+  },
+  "godot": {
+    "texture_path": "res://assets/sprites/market-crate/spritesheet.png"
+  }
+}

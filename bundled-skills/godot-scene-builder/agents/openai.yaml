@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Scene Builder"
+  short_description: "Create Godot scene and script starter bundles"
+  default_prompt: "Create .tscn and GDScript starter files for actors, props, rooms, UI, and click-to-move scenes."

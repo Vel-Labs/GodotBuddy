@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Sprite Importer"
+  short_description: "Package generated sprites for Godot import"
+  default_prompt: "Copy sprite packs into a Godot project and create import manifests, setup notes, and starter SpriteFrames resources."

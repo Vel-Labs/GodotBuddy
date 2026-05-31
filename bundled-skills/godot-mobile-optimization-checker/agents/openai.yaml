@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Mobile Optimization Checker"
+  short_description: "Audit Godot assets for mobile readiness"
+  default_prompt: "Scan a Godot project or asset folder for texture size, file size, transparent padding, manifest, and mobile-readiness issues."

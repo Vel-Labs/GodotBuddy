@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot UI Kit Generator"
+  short_description: "Scaffold mobile-first Godot UI kits and UI art requests"
+  default_prompt: "Create Control scenes, UI manifests, safe-area notes, and sprite-generation handoffs for HUDs, menus, icons, meters, and panels."
