@@ -56,7 +56,7 @@ function bool(v, def = false) {
 }
 
 function printHelp() {
-  console.log(`GodotBuddy v0.1.1
+  console.log(`GodotBuddy v0.1.2
 
 Usage:
   godotbuddy setup [--project-name NAME] [--style-pack generic] [--platforms mobile,desktop] [--install-skills true]

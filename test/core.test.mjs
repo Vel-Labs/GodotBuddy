@@ -20,7 +20,8 @@ import {
   qaSpriteAssets,
   quickstartProject,
   readJson,
-  setupFirstRun
+  setupFirstRun,
+  writeJson
 } from '../src/core.mjs';
 
 test('setupFirstRun personalizes workspace, installs skills, and records a receipt', () => {
@@ -62,6 +63,77 @@ test('setupFirstRun personalizes workspace, installs skills, and records a recei
   assert.equal(manifest.commands.setup.command, 'setup');
 });
 
+test('setupFirstRun records already-present bundled skills in manifest', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'godotbuddy-existing-skills-'));
+  const root = path.join(tmp, 'game');
+  const codexHome = path.join(tmp, 'codex-home');
+
+  setupFirstRun({
+    root,
+    projectName: 'Existing Skills Game',
+    codexHome,
+    installSkills: true
+  });
+  const second = setupFirstRun({
+    root,
+    projectName: 'Existing Skills Game',
+    codexHome,
+    installSkills: true
+  });
+
+  assert.equal(second.installedSkills.length, 9);
+  const config = readJson(configPath(root));
+  assert.equal(config.skills.installed.length, 9);
+  const manifest = readJson(path.join(root, '.godotbuddy', 'install-manifest.json'));
+  assert.equal(manifest.installed_skills.length, 9);
+  assert.ok(manifest.installed_skills.every(skill => fs.existsSync(path.join(skill.path, 'SKILL.md'))));
+});
+
+test('doctor recognizes physically installed skills if old manifest missed records', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'godotbuddy-doctor-discover-'));
+  const root = path.join(tmp, 'game');
+  const codexHome = path.join(tmp, 'codex-home');
+
+  quickstartProject({
+    root,
+    projectName: 'Doctor Discover Game',
+    goal: 'Verify physical skill discovery',
+    codexHome
+  });
+  const config = readJson(configPath(root));
+  config.skills.installed = [];
+  writeJson(configPath(root), config);
+  const manifestPath = path.join(root, '.godotbuddy', 'install-manifest.json');
+  const manifest = readJson(manifestPath);
+  manifest.installed_skills = [];
+  writeJson(manifestPath, manifest);
+
+  const checks = doctor({ root });
+  const installed = checks.find(check => check.name === 'Installed GodotBuddy skills');
+  assert.equal(installed.ok, true);
+  assert.match(installed.detail, /manifest missing records; discovered 9\/9 skills/);
+});
+
+test('doctor treats no active run after setup as advisory', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'godotbuddy-doctor-setup-only-'));
+  const root = path.join(tmp, 'game');
+  setupFirstRun({
+    root,
+    projectName: 'Setup Only Game',
+    codexHome: path.join(tmp, 'codex-home')
+  });
+
+  const checks = doctor({ root });
+  const byName = new Map(checks.map(check => [check.name, check]));
+
+  assert.equal(byName.get('Installed GodotBuddy skills').ok, true);
+  assert.equal(byName.get('At least one run').ok, false);
+  assert.equal(byName.get('At least one run').level, 'optional');
+  assert.equal(byName.get('Active run state readable').ok, false);
+  assert.equal(byName.get('Active run state readable').level, 'optional');
+  assert.equal(checks.filter(check => !check.ok && check.level !== 'optional').length, 0);
+});
+
 test('quickstart creates a guided first run with next-step tasks', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'godotbuddy-quickstart-'));
   const root = path.join(tmp, 'game');
@@ -100,6 +172,7 @@ test('doctor checks install health without requiring optional Godot files', () =
   assert.equal(byName.get('Config readable').ok, true);
   assert.equal(byName.get('Hub file readable').ok, true);
   assert.equal(byName.get('Active run state readable').ok, true);
+  assert.equal(byName.get('Active run state readable').level, 'optional');
   assert.equal(byName.get('Moodboard readable').ok, true);
   assert.equal(byName.get('Board web app files').ok, true);
   assert.equal(byName.get('Bundled generic skills').ok, true);

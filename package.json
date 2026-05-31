@@ -1,6 +1,6 @@
 {
   "name": "godotbuddy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Guided local command center for Godot goals, moodboards, asset pipelines, sprite QA, and proof receipts.",
   "type": "module",
   "author": "Vel Labs",

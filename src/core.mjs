@@ -1139,8 +1139,8 @@ export function installBundledSkills({
     if (!fs.existsSync(path.join(src, 'SKILL.md'))) continue;
     const dest = path.join(destRoot, entry);
     if (fs.existsSync(dest) && force) fs.rmSync(dest, { recursive: true, force: true });
-    if (fs.existsSync(dest) && !force) continue;
-    copyRecursive(src, dest);
+    if (!fs.existsSync(dest)) copyRecursive(src, dest);
+    if (!fs.existsSync(path.join(dest, 'SKILL.md'))) continue;
     installed.push(dest);
   }
   return installed;
@@ -1162,8 +1162,13 @@ export function doctor({ root = repoRoot() } = {}) {
     path.join(packageRoot(), 'apps', 'web', 'style.css'),
     path.join(packageRoot(), 'apps', 'web', 'app.js')
   ];
-  const installedSkillNames = cfg?.skills?.installed || [];
+  const manifestSkillNames = Array.isArray(manifest?.installed_skills)
+    ? manifest.installed_skills.map(skill => skill.name).filter(Boolean)
+    : [];
+  const installedSkillNames = (cfg?.skills?.installed || manifestSkillNames || []).filter(Boolean);
   const codexHome = cfg?.skills?.codex_home || process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
+  const discoveredSkillNames = genericSkills.filter(name => fs.existsSync(path.join(codexHome, 'skills', name, 'SKILL.md')));
+  const skillNamesForCheck = installedSkillNames.length ? installedSkillNames : discoveredSkillNames;
   const missingInstalledSkills = installedSkillNames.filter(name => {
     return !fs.existsSync(path.join(codexHome, 'skills', name, 'SKILL.md'));
   });
@@ -1173,16 +1178,18 @@ export function doctor({ root = repoRoot() } = {}) {
   add('Install manifest readable', Boolean(manifest), installManifestPath(root));
   add('Config readable', Boolean(cfg), configPath(root));
   add('Hub file readable', Boolean(hub), hubPath(root));
-  add('At least one run', Boolean(hub && hub.runs && hub.runs.length), hub ? `${hub.runs.length} runs` : 'no hub');
-  add('Active run state readable', Boolean(activeRunState && readJson(activeRunState, null)), activeRunState || 'no active run');
+  add('At least one run', Boolean(hub && hub.runs && hub.runs.length), hub ? `${hub.runs.length} runs` : 'no hub', 'optional');
+  add('Active run state readable', Boolean(activeRunState && readJson(activeRunState, null)), activeRunState || 'no active run', 'optional');
   add('Moodboard readable', Boolean(moodboard), moodboardPath(root));
   add('Board web app files', boardFiles.every(file => fs.existsSync(file)), boardFiles.map(file => path.relative(packageRoot(), file)).join(', '));
   add('Bundled generic skills', genericSkills.length >= 8, `${genericSkills.length} skills in suite manifest`);
-  if (installedSkillNames.length) {
+  if (skillNamesForCheck.length) {
     add(
       'Installed GodotBuddy skills',
-      missingInstalledSkills.length === 0,
-      missingInstalledSkills.length ? `missing: ${missingInstalledSkills.join(', ')}` : `${installedSkillNames.length} skills in ${codexHome}`
+      installedSkillNames.length ? missingInstalledSkills.length === 0 : discoveredSkillNames.length === genericSkills.length,
+      installedSkillNames.length
+        ? (missingInstalledSkills.length ? `missing: ${missingInstalledSkills.join(', ')}` : `${installedSkillNames.length} skills in ${codexHome}`)
+        : `manifest missing records; discovered ${discoveredSkillNames.length}/${genericSkills.length} skills in ${codexHome}`
     );
   } else {
     add('Installed GodotBuddy skills', false, 'run godotbuddy setup or install-skills', 'optional');
