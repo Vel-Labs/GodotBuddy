@@ -1,6 +1,32 @@
 # GodotBuddy
 
+[![npm version](https://img.shields.io/npm/v/godotbuddy.svg)](https://www.npmjs.com/package/godotbuddy)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 GodotBuddy is a GoalBuddy-style local workflow companion for Godot game development.
+
+## Install
+
+GodotBuddy is published on npm as [`godotbuddy`](https://www.npmjs.com/package/godotbuddy).
+
+Start a guided local setup with:
+
+```bash
+npx godotbuddy@latest setup
+```
+
+Then create the first guided board:
+
+```bash
+npx godotbuddy@latest quickstart
+```
+
+Power users can also install it globally:
+
+```bash
+npm install -g godotbuddy
+godotbuddy setup
+```
 
 It combines:
 
